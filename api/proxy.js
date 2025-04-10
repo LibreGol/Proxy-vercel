@@ -1,9 +1,6 @@
 export default async function handler(req, res) {
   const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).send("Falta el parámetro ?url=");
-  }
+  if (!url) return res.status(400).send("Falta el parámetro ?url=");
 
   try {
     const response = await fetch(url, {
@@ -12,10 +9,13 @@ export default async function handler(req, res) {
       }
     });
 
-    const contentType = response.headers.get("content-type");
     const body = await response.text();
 
-    res.setHeader("Content-Type", contentType);
+    // Eliminar cabeceras que bloquean iframe
+    res.removeHeader("X-Frame-Options");
+    res.removeHeader("Content-Security-Policy");
+
+    res.setHeader("Content-Type", "text/html");
     res.status(200).send(body);
   } catch (err) {
     res.status(500).send("Error al acceder al enlace: " + err.message);
